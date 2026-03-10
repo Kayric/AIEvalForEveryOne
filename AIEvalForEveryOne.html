@@ -525,7 +525,7 @@
                                 <div class="text-sm font-bold text-secondary bg-secondary/10 px-4 py-2 rounded-full whitespace-nowrap">Phase: Pre-Deployment</div>
                             </div>
 
-                            <div class="overflow-x-auto mb-12">
+                            <div class="overflow-x-auto mb-8">
                                 <table class="w-full text-left border-collapse">
                                     <thead class="bg-softgray text-primary uppercase text-xs tracking-wider">
                                         <tr>
@@ -550,6 +550,12 @@
                                         </tr>
                                     </tbody>
                                 </table>
+                            </div>
+
+                            <!-- Explaining the Metric -->
+                            <div class="mt-8 mb-10 bg-secondary/5 p-6 rounded-2xl border border-secondary/20">
+                                <h4 class="font-bold text-lg flex items-center gap-2 mb-2"><i class="ph ph-ruler text-secondary text-2xl"></i> What exactly is a "Metric" here?</h4>
+                                <p class="text-primary/80 leading-relaxed">A metric is simply a <strong>quantifiable rule</strong> we create to check if our "What could go wrong?" fear actually happened. We don't track metrics just for fun; we track them to catch specific failures. Once we define the metric (e.g., "Escalation Accuracy"), we have to figure out <em>how</em> to measure it.</p>
                             </div>
                             
                             <div class="grid md:grid-cols-2 gap-8">
