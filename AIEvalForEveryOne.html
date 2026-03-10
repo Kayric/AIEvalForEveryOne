@@ -112,7 +112,8 @@
     <!-- Sidebar Navigation -->
     <aside id="sidebar" class="transform -translate-x-full md:translate-x-0 transition-transform duration-300 fixed md:relative z-40 w-64 h-full bg-softgray/20 text-primary flex flex-col border-r border-softgray pt-16 md:pt-0">
         <div class="p-6 border-b border-softgray hidden md:block">
-            <h1 class="font-bold text-xl text-primary">AI Evals <span class="text-secondary">101</span></h1>
+            <h1 class="font-bold text-xl text-primary">AI Evals <br>
+            <span class="text-secondary">For Everyone</span></h1>
             <p class="text-xs text-primary/70 mt-1">Interactive Course Companion</p>
         </div>
         
@@ -122,7 +123,7 @@
 
         <div class="p-4 border-t border-softgray bg-white">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary font-bold">QA</div>
+                <div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary font-bold">SPS</div>
                 <div>
                     <p class="text-sm text-primary font-bold">Your Progress</p>
                     <div class="w-full bg-softgray rounded-full h-1.5 mt-1 w-24">
@@ -149,7 +150,7 @@
         const courseData = [
             {
                 id: 'cover',
-                title: 'Cover Page',
+                title: 'Welcome',
                 icon: 'ph-presentation-chart',
                 content: `
                     <div class="max-w-5xl mx-auto p-6 md:p-10 fade-in flex flex-col items-center justify-center min-h-[85vh]">
@@ -171,7 +172,7 @@
                                 <div class="w-24 h-1 bg-secondary mx-auto mb-8 rounded-full"></div>
                                 
                                 <p class="text-lg md:text-xl text-primary/60 mb-12 max-w-2xl mx-auto">
-                                    A practical knowledge-sharing session for Engineering, Product, UX, and QA teams.
+                                    Brought to you by Kirk & Gemini
                                 </p>
                                 
                                 <button onclick="loadChapter(1)" class="bg-secondary hover:bg-primary text-white font-bold py-4 px-10 rounded-full transition-all transform hover:-translate-y-1 hover:scale-105 flex items-center gap-3 mx-auto text-lg">
@@ -191,7 +192,7 @@
                         <header class="mb-12 border-b border-softgray pb-6">
                             <span class="text-secondary text-xs font-bold uppercase tracking-widest">Introduction</span>
                             <h2 class="text-3xl md:text-4xl font-bold mt-2">Why Should We Care About AI Evals?</h2>
-                            <p class="text-lg text-primary/70 mt-4 leading-relaxed">Before we dive into the technical details, let's talk about why AI Evaluation matters for your specific role on the team.</p>
+                            <p class="text-lg text-primary/70 mt-4 leading-relaxed">Let's talk about why AI Evaluation matters for your specific role on the team.</p>
                         </header>
 
                         <!-- Why Should You Care Section (Open Layout) -->
@@ -257,7 +258,7 @@
                                     <ul class="space-y-4">
                                         <li class="flex items-start gap-3"><i class="ph ph-arrow-right mt-1 text-secondary"></i> <span>Defining what "good" looks like for your specific product.</span></li>
                                         <li class="flex items-start gap-3"><i class="ph ph-arrow-right mt-1 text-secondary"></i> <span>A continuous lifecycle that extends into production.</span></li>
-                                        <li class="flex items-start gap-3"><i class="ph ph-arrow-right mt-1 text-secondary"></i> <span>A team sport (QA, Devs, PMs, UX).</span></li>
+                                        <li class="flex items-start gap-3"><i class="ph ph-arrow-right mt-1 text-secondary"></i> <span>A team sport.</span></li>
                                     </ul>
                                 </div>
                                 
@@ -295,7 +296,7 @@
                                     <div class="w-12 h-12 rounded-full bg-softgray flex items-center justify-center"><i class="ph ph-cursor-click text-2xl text-secondary"></i></div>
                                     <h3 class="font-bold text-2xl">Traditional Software</h3>
                                 </div>
-                                <p class="mb-6 flex-grow text-primary/80">Predictable (Deterministic). The user clicks a specific button, and the system follows a hard-coded rule.</p>
+                                <p class="mb-6 flex-grow text-primary/80">Predictable (Deterministic). The user clicks a specific button, and the system follows a written rule.</p>
                                 <div class="bg-softgray/30 rounded-lg p-6 font-mono text-sm min-h-[6rem] flex flex-col justify-end border border-softgray">
                                     <div class="text-primary/60 mb-2">> Action: User clicks "Request Refund"</div>
                                     <div id="trad-output" class="font-bold">> ...</div>
@@ -621,7 +622,7 @@
             },
             {
                 id: 'production',
-                title: '6. Production Monitoring',
+                title: '6. Monitoring',
                 icon: 'ph-pulse',
                 content: `
                     <div class="max-w-4xl mx-auto p-6 md:p-10 fade-in">
@@ -709,55 +710,97 @@
                         <header class="mb-12 border-b border-softgray pb-6">
                             <span class="text-secondary text-xs font-bold uppercase tracking-widest">Chapter 7</span>
                             <h2 class="text-3xl md:text-4xl font-bold mt-2">The Continuous Lifecycle</h2>
-                            <p class="text-lg text-primary/70 mt-4 leading-relaxed">Putting it all together. Evaluation is not a one-time event, it is an ongoing cycle.</p>
+                            <p class="text-lg text-primary/70 mt-4 leading-relaxed">Evaluation is not a one-time event. It is an ongoing, continuous loop.</p>
                         </header>
 
-                        <!-- Bulletproof Flexbox Timeline -->
-                        <div class="ml-2 md:ml-8 mt-8 flex flex-col">
-                            <!-- Step 1 -->
-                            <div class="flex">
-                                <div class="flex flex-col items-center mr-6">
-                                    <div class="w-16 h-16 bg-white border-4 border-softgray rounded-full flex items-center justify-center font-bold text-primary text-xl shrink-0 z-10">1</div>
-                                    <div class="w-1 bg-softgray flex-1 my-2 rounded"></div>
-                                </div>
-                                <div class="pb-12 pt-4">
-                                    <h3 class="font-bold text-2xl mb-2">Test Before Launch (The Baseline)</h3>
-                                    <p class="text-primary/70 leading-relaxed text-lg">Product and QA teams pick 10 to 20 critical "cannot fail" scenarios. Test the AI against these before letting real users touch it.</p>
-                                </div>
+                        <!-- Desktop Circular Diagram -->
+                        <div class="relative w-full max-w-2xl mx-auto h-[650px] hidden md:block mt-16 mb-8">
+                            <!-- Circular Track -->
+                            <div class="absolute inset-20 border-[3px] border-dashed border-softgray rounded-full"></div>
+                            
+                            <!-- Center Icon -->
+                            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-secondary/10">
+                                <i class="ph ph-arrows-clockwise text-[14rem]"></i>
                             </div>
                             
-                            <!-- Step 2 -->
-                            <div class="flex">
-                                <div class="flex flex-col items-center mr-6">
-                                    <div class="w-16 h-16 bg-white border-4 border-softgray rounded-full flex items-center justify-center font-bold text-primary text-xl shrink-0 z-10">2</div>
-                                    <div class="w-1 bg-softgray flex-1 my-2 rounded"></div>
-                                </div>
-                                <div class="pb-12 pt-4">
-                                    <h3 class="font-bold text-2xl mb-2">Automate the Grading</h3>
-                                    <p class="text-primary/70 leading-relaxed text-lg">Set up automatic checks. Use strict rules for objective things (like response speed) and use AI reviewers for subjective things (like empathy).</p>
-                                </div>
+                            <!-- Step 1 (Top) -->
+                            <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-64 bg-white p-6 rounded-2xl border border-softgray shadow-lg text-center z-10 hover:border-secondary transition-colors duration-300">
+                                <div class="w-12 h-12 bg-softgray text-primary rounded-full flex items-center justify-center mx-auto mb-3 text-xl font-bold">1</div>
+                                <h3 class="font-bold text-lg mb-2">Test Before Launch</h3>
+                                <p class="text-sm text-primary/70">Pick 10 to 20 critical scenarios. Test the AI against these first.</p>
                             </div>
+
+                            <!-- Step 2 (Right) -->
+                            <div class="absolute top-1/2 right-0 transform translate-x-4 -translate-y-1/2 w-64 bg-white p-6 rounded-2xl border border-softgray shadow-lg text-center z-10 hover:border-secondary transition-colors duration-300">
+                                <div class="w-12 h-12 bg-softgray text-primary rounded-full flex items-center justify-center mx-auto mb-3 text-xl font-bold">2</div>
+                                <h3 class="font-bold text-lg mb-2">Automate Grading</h3>
+                                <p class="text-sm text-primary/70">Set up strict code checks and AI reviewers for subjectivity.</p>
+                            </div>
+
+                            <!-- Step 3 (Bottom) -->
+                            <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-64 bg-white p-6 rounded-2xl border border-softgray shadow-lg text-center z-10 hover:border-secondary transition-colors duration-300">
+                                <div class="w-12 h-12 bg-softgray text-primary rounded-full flex items-center justify-center mx-auto mb-3 text-xl font-bold">3</div>
+                                <h3 class="font-bold text-lg mb-2">Add Safety Nets</h3>
+                                <p class="text-sm text-primary/70">Launch with live guardrails. Block harm instantly.</p>
+                            </div>
+
+                            <!-- Step 4 (Left) -->
+                            <div class="absolute top-1/2 left-0 transform -translate-x-4 -translate-y-1/2 w-64 bg-white p-6 rounded-2xl border border-softgray shadow-lg text-center z-10 hover:border-secondary transition-colors duration-300">
+                                <div class="w-12 h-12 bg-softgray text-primary rounded-full flex items-center justify-center mx-auto mb-3 text-xl font-bold">4</div>
+                                <h3 class="font-bold text-lg mb-2">Learn from Users</h3>
+                                <p class="text-sm text-primary/70">Watch for frustration. Find out what broke, add it to Step 1.</p>
+                            </div>
+                        </div>
+
+                        <!-- Mobile Vertical Layout -->
+                        <div class="md:hidden mt-8 space-y-4">
+                            <!-- Step 1 -->
+                            <div class="bg-white p-6 rounded-2xl border border-softgray shadow-sm relative">
+                                <div class="flex items-center gap-4 mb-2">
+                                    <div class="w-10 h-10 bg-softgray text-primary rounded-full flex items-center justify-center text-lg font-bold shrink-0">1</div>
+                                    <h3 class="font-bold text-xl">Test Before Launch</h3>
+                                </div>
+                                <p class="text-primary/70 ml-14">Product and QA teams pick 10 to 20 critical "cannot fail" scenarios. Test the AI against these before letting real users touch it.</p>
+                            </div>
+                            
+                            <div class="flex justify-center text-softgray"><i class="ph ph-arrow-down text-3xl"></i></div>
+                            
+                            <!-- Step 2 -->
+                            <div class="bg-white p-6 rounded-2xl border border-softgray shadow-sm relative">
+                                <div class="flex items-center gap-4 mb-2">
+                                    <div class="w-10 h-10 bg-softgray text-primary rounded-full flex items-center justify-center text-lg font-bold shrink-0">2</div>
+                                    <h3 class="font-bold text-xl">Automate the Grading</h3>
+                                </div>
+                                <p class="text-primary/70 ml-14">Set up automatic checks. Use strict rules for objective things (like response speed) and use AI reviewers for subjective things (like empathy).</p>
+                            </div>
+
+                            <div class="flex justify-center text-softgray"><i class="ph ph-arrow-down text-3xl"></i></div>
 
                             <!-- Step 3 -->
-                            <div class="flex">
-                                <div class="flex flex-col items-center mr-6">
-                                    <div class="w-16 h-16 bg-white border-4 border-secondary rounded-full flex items-center justify-center font-bold text-secondary text-xl shrink-0 z-10">3</div>
-                                    <div class="w-1 bg-softgray flex-1 my-2 rounded"></div>
+                            <div class="bg-white p-6 rounded-2xl border-2 border-softgray shadow-sm relative shadow-secondary/10">
+                                <div class="flex items-center gap-4 mb-2">
+                                    <div class="w-10 h-10 bg-softgray text-primary rounded-full flex items-center justify-center text-lg font-bold shrink-0">3</div>
+                                    <h3 class="font-bold text-xl">Add Live Safety Nets</h3>
                                 </div>
-                                <div class="pb-12 pt-4">
-                                    <h3 class="font-bold text-2xl mb-2">Add Live Safety Nets</h3>
-                                    <p class="text-primary/70 leading-relaxed text-lg">Launch the AI to users, but keep "guardrails" on. Instantly block harmful content or escalate to a human if the AI gets confused.</p>
-                                </div>
+                                <p class="text-primary/70 ml-14">Launch the AI to users, but keep "guardrails" on. Instantly block harmful content or escalate to a human if the AI gets confused.</p>
                             </div>
 
-                            <!-- Step 4 (No trailing line) -->
-                            <div class="flex">
-                                <div class="flex flex-col items-center mr-6">
-                                    <div class="w-16 h-16 bg-white border-4 border-secondary rounded-full flex items-center justify-center font-bold text-secondary text-xl shrink-0 z-10">4</div>
+                            <div class="flex justify-center text-softgray"><i class="ph ph-arrow-down text-3xl"></i></div>
+
+                            <!-- Step 4 -->
+                            <div class="bg-white p-6 rounded-2xl border border-softgray shadow-sm relative">
+                                <div class="flex items-center gap-4 mb-2">
+                                    <div class="w-10 h-10 bg-softgray text-primary rounded-full flex items-center justify-center text-lg font-bold shrink-0">4</div>
+                                    <h3 class="font-bold text-xl">Learn from Users</h3>
                                 </div>
-                                <div class="pb-4 pt-4">
-                                    <h3 class="font-bold text-2xl mb-2">Learn from User Frustration</h3>
-                                    <p class="text-primary/70 leading-relaxed text-lg">Watch for signs of trouble (like a user repeating the same question). Find out what broke, add it to your Step 1 test scenarios, and repeat the cycle!</p>
+                                <p class="text-primary/70 ml-14">Watch for signs of trouble (like a user repeating the same question). Find out what broke, add it to your Step 1 test scenarios, and repeat the cycle!</p>
+                            </div>
+                            
+                            <!-- Loop back indicator -->
+                            <div class="flex justify-center text-secondary mt-8 pb-4">
+                                <div class="flex flex-col items-center bg-secondary/10 p-4 rounded-xl px-8">
+                                    <i class="ph ph-arrows-clockwise text-4xl mb-2"></i>
+                                    <span class="text-sm font-bold tracking-widest uppercase">Cycle Repeats</span>
                                 </div>
                             </div>
                         </div>
@@ -839,6 +882,39 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 'resources',
+                title: '9. Resources & Credits',
+                icon: 'ph-books',
+                content: `
+                    <div class="max-w-4xl mx-auto p-6 md:p-10 fade-in">
+                        <header class="mb-12 border-b border-softgray pb-6">
+                            <span class="text-secondary text-xs font-bold uppercase tracking-widest">Resources</span>
+                            <h2 class="text-3xl md:text-4xl font-bold mt-2">Credits & Further Reading</h2>
+                            <p class="text-lg text-primary/70 mt-4 leading-relaxed">This presentation is built upon the foundational knowledge from an open-source guide created for the AI community.</p>
+                        </header>
+
+                        <!-- GitHub Reference Card -->
+                        <div class="bg-softgray/20 p-8 md:p-12 rounded-3xl border border-softgray flex flex-col items-center text-center">
+                            <div class="w-20 h-20 rounded-full bg-white flex items-center justify-center text-primary shadow-sm mb-8">
+                                <i class="ph ph-github-logo text-4xl"></i>
+                            </div>
+                            
+                            <h3 class="text-2xl font-bold mb-4">"AI Evals for Everyone"</h3>
+                            
+                            <p class="text-primary/80 mb-8 max-w-2xl leading-relaxed text-lg">
+                                The concepts, frameworks, and foundational content presented today are derived from the excellent open-source course created by <strong>Aishwarya Naresh Reganti</strong> and <strong>Kiriti Badam</strong>. 
+                                <br><br>
+                                It is highly recommended that team members looking to dive deeper into building reference datasets, monitoring strategies, and metric formulation review the original material.
+                            </p>
+                            
+                            <a href="https://github.com/aishwaryanr/awesome-generative-ai-guide/blob/main/free_courses/ai_evals_for_everyone/README.md" target="_blank" rel="noopener noreferrer" class="bg-secondary hover:bg-primary text-white font-bold py-4 px-8 rounded-full transition-all flex items-center gap-3 shadow-lg shadow-secondary/20 hover:-translate-y-1">
+                                View Full Course on GitHub <i class="ph ph-arrow-square-out font-bold text-xl"></i>
+                            </a>
                         </div>
                     </div>
                 `
