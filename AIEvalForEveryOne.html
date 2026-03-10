@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Evals for Everyone - Interactive Guide</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Phosphor Icons (for clean, modern icons, NO SVG required) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Chosen Palette: Company Brand (Dark Blue, Blue, Accent Green, Soft Gray) -->
+    
+    <!-- Application Structure Plan: 
+         The SPA uses a "Learning Dashboard" architecture. 
+         - Left Sidebar: Provides persistent chapter navigation and progress tracking, allowing users to move linearly or jump to specific topics.
+         - Main Content Area: A dynamic container that renders the selected chapter's content with an "open layout" design (no heavy cards/borders).
+         - Why: This structure was chosen because the source report acts as a course. A dashboard allows for bite-sized, focused learning per concept (Introduction, Framework, Datasets, Metrics, Production) without overwhelming the user with a massive scrolling document. Interactive widgets (Simulators, Charts) are contextualized within their specific learning modules.
+    -->
+    
+    <!-- Visualization & Content Choices: 
+         - Concept: Deterministic vs Probabilistic AI -> Goal: Inform/Compare -> Method: Interactive Terminal Simulators (HTML/JS) -> Justification: Tangible demonstration of non-determinism is far more effective than text alone.
+         - Concept: Metric Prioritization -> Goal: Organize/Relationships -> Method: Chart.js Scatter Plot -> Justification: Allows users to visually map Cost vs. Impact. Colors strictly adhere to <10% accent rule.
+         - Concept: Production Scale -> Goal: Inform/Change -> Method: Interactive Log Filter (HTML/JS) -> Justification: Simulates the "needle in a haystack" problem of production monitoring at scale.
+         - Confirming NO SVG/Mermaid: All icons use Phosphor Webfonts. All charts use Canvas. Layouts use HTML/Tailwind.
+    -->
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0d2c54', // Main dark blue text
+                        secondary: '#006fff', // Blue for links/accents
+                        accent: '#11d399', // Green for chart/graphic accents
+                        softgray: '#DCE3ED', // Soft gray for visuals/backgrounds
+                        bg: '#ffffff', // Pure white for open layout
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #ffffff; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #DCE3ED; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #006fff; 
+        }
+
+        /* Chart Container Strict Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .active-nav {
+            background-color: #f0f4f8; /* Very subtle highlight for active nav */
+            color: #006fff;
+            border-right: 4px solid #006fff; 
+            font-weight: 600;
+        }
+        
+        /* Global typography enforcing brand color */
+        body {
+            color: #0d2c54;
+        }
+    </style>
+</head>
+<body class="bg-bg font-sans h-screen flex overflow-hidden">
+
+    <!-- Mobile Header -->
+    <div class="md:hidden fixed top-0 w-full bg-primary text-white z-50 flex items-center justify-between p-4 shadow-md">
+        <h1 class="font-bold text-lg">AI Evals for Everyone</h1>
+        <button id="mobile-menu-btn" class="text-2xl p-1 focus:outline-none">
+            <i class="ph ph-list"></i>
+        </button>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="transform -translate-x-full md:translate-x-0 transition-transform duration-300 fixed md:relative z-40 w-64 h-full bg-softgray/20 text-primary flex flex-col border-r border-softgray pt-16 md:pt-0">
+        <div class="p-6 border-b border-softgray hidden md:block">
+            <h1 class="font-bold text-xl text-primary">AI Evals <span class="text-secondary">101</span></h1>
+            <p class="text-xs text-primary/70 mt-1">Interactive Course Companion</p>
+        </div>
+        
+        <nav class="flex-1 overflow-y-auto py-4" id="nav-container">
+            <!-- Nav items injected via JS -->
+        </nav>
+
+        <div class="p-4 border-t border-softgray bg-white">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary font-bold">QA</div>
+                <div>
+                    <p class="text-sm text-primary font-bold">Your Progress</p>
+                    <div class="w-full bg-softgray rounded-full h-1.5 mt-1 w-24">
+                        <div id="progress-bar" class="bg-secondary h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto relative w-full pt-16 md:pt-0" id="main-content">
+        <!-- Content injected via JS -->
+    </main>
+
+    <!-- Overlay for mobile sidebar -->
+    <div id="overlay" class="fixed inset-0 bg-primary/20 z-30 hidden md:hidden backdrop-blur-sm"></div>
+
+    <script>
+        // --- Globals ---
+        let toggleSidebar;
+
+        // --- Data & Content ---
+        const courseData = [
+            {
+                id: 'cover',
+                title: 'Cover Page',
+                icon: 'ph-presentation-chart',
+                content: `
+                    <div class="max-w-5xl mx-auto p-6 md:p-10 fade-in flex flex-col items-center justify-center min-h-[85vh]">
+                        <div class="w-full relative overflow-hidden text-center py-20">
+                            
+                            <div class="relative z-10">
+                                <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-softgray mb-8">
+                                    <i class="ph ph-sparkle text-5xl text-secondary"></i>
+                                </div>
+                                
+                                <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight text-primary">
+                                    AI Evals for Everyone
+                                </h1>
+                                
+                                <p class="text-xl md:text-3xl text-primary/70 mb-8 font-light">
+                                    Building & Testing Reliable AI Products
+                                </p>
+                                
+                                <div class="w-24 h-1 bg-secondary mx-auto mb-8 rounded-full"></div>
+                                
+                                <p class="text-lg md:text-xl text-primary/60 mb-12 max-w-2xl mx-auto">
+                                    A practical knowledge-sharing session for Engineering, Product, UX, and QA teams.
+                                </p>
+                                
+                                <button onclick="loadChapter(1)" class="bg-secondary hover:bg-primary text-white font-bold py-4 px-10 rounded-full transition-all transform hover:-translate-y-1 hover:scale-105 flex items-center gap-3 mx-auto text-lg">
+                                    Start Presentation <i class="ph ph-arrow-right font-bold"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 'definition',
+                title: 'Introduction',
+                icon: 'ph-book-open',
+                content: `
+                    <div class="max-w-4xl mx-auto p-6 md:p-10 fade-in">
+                        <header class="mb-12 border-b border-softgray pb-6">
+                            <span class="text-secondary text-xs font-bold uppercase tracking-widest">Introduction</span>
+                            <h2 class="text-3xl md:text-4xl font-bold mt-2">Why Should We Care About AI Evals?</h2>
+                            <p class="text-lg text-primary/70 mt-4 leading-relaxed">Before we dive into the technical details, let's talk about why AI Evaluation matters for your specific role on the team.</p>
+                        </header>
+
+                        <!-- Why Should You Care Section (Open Layout) -->
+                        <div class="grid md:grid-cols-2 gap-x-12 gap-y-10 mb-16">
+                            <div class="flex gap-4">
+                                <div class="w-12 h-12 rounded-full bg-softgray flex items-center justify-center text-secondary shrink-0">
+                                    <i class="ph ph-briefcase text-2xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg">Project Manager</h4>
+                                    <p class="text-sm text-primary/80 mt-2 leading-relaxed">You define the business value. Without evals, you can't define what a "successful" AI feature actually looks like for the user.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="w-12 h-12 rounded-full bg-softgray flex items-center justify-center text-secondary shrink-0">
+                                    <i class="ph ph-shield-check text-2xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg">Quality Assurance</h4>
+                                    <p class="text-sm text-primary/80 mt-2 leading-relaxed">AI breaks traditional pass/fail testing. Your skills in finding edge cases are critical to building the grading rubrics.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="w-12 h-12 rounded-full bg-softgray flex items-center justify-center text-secondary shrink-0">
+                                    <i class="ph ph-code text-2xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg">Engineering</h4>
+                                    <p class="text-sm text-primary/80 mt-2 leading-relaxed">Passing a unit test doesn't mean the AI works. You must implement automated metrics that measure real system behavior.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="w-12 h-12 rounded-full bg-softgray flex items-center justify-center text-secondary shrink-0">
+                                    <i class="ph ph-paint-brush text-2xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg">Designers</h4>
+                                    <p class="text-sm text-primary/80 mt-2 leading-relaxed">Understanding AI failures helps you design better fallbacks, safety warnings, and user feedback mechanisms.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- The Definition Section (Open Layout) -->
+                        <div class="pt-8">
+                            <h3 class="text-2xl font-bold mb-6">So, What Exactly Are "Evals"?</h3>
+                            
+                            <div class="bg-softgray/30 p-8 rounded-2xl mb-12 relative">
+                                <i class="ph ph-quotes text-5xl text-softgray absolute top-4 left-4"></i>
+                                <div class="relative z-10 pl-6">
+                                    <h3 class="text-secondary font-bold text-sm mb-3 uppercase tracking-wider">Formal Definition</h3>
+                                    <p class="text-2xl font-light leading-snug">
+                                        "AI Evaluation is the systematic process of measuring and monitoring the <span class="font-bold text-secondary">quality</span>, <span class="font-bold text-secondary">safety</span>, and <span class="font-bold text-secondary">utility</span> of an AI system against business requirements and user expectations."
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- What it IS vs What it IS NOT -->
+                            <div class="grid md:grid-cols-2 gap-12">
+                                <div>
+                                    <h4 class="font-bold text-lg mb-6 flex items-center gap-2">
+                                        <i class="ph ph-check-circle text-accent text-2xl"></i> What Evals ARE
+                                    </h4>
+                                    <ul class="space-y-4">
+                                        <li class="flex items-start gap-3"><i class="ph ph-arrow-right mt-1 text-secondary"></i> <span>Defining what "good" looks like for your specific product.</span></li>
+                                        <li class="flex items-start gap-3"><i class="ph ph-arrow-right mt-1 text-secondary"></i> <span>A continuous lifecycle that extends into production.</span></li>
+                                        <li class="flex items-start gap-3"><i class="ph ph-arrow-right mt-1 text-secondary"></i> <span>A team sport (QA, Devs, PMs, UX).</span></li>
+                                    </ul>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="font-bold text-lg mb-6 flex items-center gap-2">
+                                        <i class="ph ph-x-circle text-primary text-2xl"></i> What Evals ARE NOT
+                                    </h4>
+                                    <ul class="space-y-4">
+                                        <li class="flex items-start gap-3"><i class="ph ph-arrow-right mt-1 text-secondary"></i> <span>Just academic benchmarks (like passing a bar exam).</span></li>
+                                        <li class="flex items-start gap-3"><i class="ph ph-arrow-right mt-1 text-secondary"></i> <span>A one-time testing phase before you click "deploy".</span></li>
+                                        <li class="flex items-start gap-3"><i class="ph ph-arrow-right mt-1 text-secondary"></i> <span>Solely the responsibility of the engineering team.</span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 'intro',
+                title: '1. Traditional vs AI',
+                icon: 'ph-question',
+                content: `
+                    <div class="max-w-4xl mx-auto p-6 md:p-10 fade-in">
+                        <header class="mb-12 border-b border-softgray pb-6">
+                            <span class="text-secondary text-xs font-bold uppercase tracking-widest">Chapter 1</span>
+                            <h2 class="text-3xl md:text-4xl font-bold mt-2">Why Evaluation is Unavoidable</h2>
+                            <p class="text-lg text-primary/70 mt-4 leading-relaxed">To understand why evaluation is suddenly so complex, we must first understand the fundamental shift in how software behaves under the hood.</p>
+                        </header>
+
+                        <!-- Concept: Deterministic vs Non-Deterministic (Merged Graphics / Open Layout) -->
+                        <div class="grid md:grid-cols-2 gap-12 mb-16">
+                            <div class="flex flex-col">
+                                <div class="flex items-center gap-3 mb-6">
+                                    <div class="w-12 h-12 rounded-full bg-softgray flex items-center justify-center"><i class="ph ph-cursor-click text-2xl text-secondary"></i></div>
+                                    <h3 class="font-bold text-2xl">Traditional Software</h3>
+                                </div>
+                                <p class="mb-6 flex-grow text-primary/80">Predictable (Deterministic). The user clicks a specific button, and the system follows a hard-coded rule.</p>
+                                <div class="bg-softgray/30 rounded-lg p-6 font-mono text-sm min-h-[6rem] flex flex-col justify-end border border-softgray">
+                                    <div class="text-primary/60 mb-2">> Action: User clicks "Request Refund"</div>
+                                    <div id="trad-output" class="font-bold">> ...</div>
+                                </div>
+                                <button onclick="runTraditional()" class="mt-6 w-full py-3 bg-softgray hover:bg-softgray/70 text-primary font-bold rounded-lg transition-colors">Simulate Click</button>
+                            </div>
+
+                            <div class="flex flex-col">
+                                <div class="flex items-center gap-3 mb-6">
+                                    <div class="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center"><i class="ph ph-sparkle text-2xl text-secondary"></i></div>
+                                    <h3 class="font-bold text-2xl">AI Systems</h3>
+                                </div>
+                                <p class="mb-6 flex-grow text-primary/80">Unpredictable (Probabilistic). The user types whatever they want, and the AI generates a unique response.</p>
+                                <div class="bg-softgray/30 rounded-lg p-6 font-mono text-sm min-h-[6rem] flex flex-col justify-end border border-softgray relative">
+                                    <div class="text-secondary text-xs font-bold absolute top-3 right-4 uppercase">New Paradigm</div>
+                                    <div class="text-primary/60 mb-2">> User: "I hated this product, give me my money back!"</div>
+                                    <div id="ai-output" class="font-bold">> ...</div>
+                                </div>
+                                <button onclick="runAI()" class="mt-6 w-full py-3 bg-secondary hover:bg-secondary/90 text-white font-bold rounded-lg transition-colors">Generate Response</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-softgray/20 p-8 rounded-2xl border-l-4 border-secondary">
+                            <h4 class="font-bold text-lg flex items-center gap-2 mb-2"><i class="ph ph-info text-secondary text-2xl"></i> Key Takeaway</h4>
+                            <p class="text-primary/80 leading-relaxed">In traditional software, we test logic. In AI, we evaluate behavior. Because we cannot predict every input or guarantee every output, <strong>evaluation isn't just testing—it's risk management.</strong></p>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 'model-vs-product',
+                title: '2. Model vs Product',
+                icon: 'ph-scales',
+                content: `
+                    <div class="max-w-4xl mx-auto p-6 md:p-10 fade-in">
+                        <header class="mb-12 border-b border-softgray pb-6">
+                            <span class="text-secondary text-xs font-bold uppercase tracking-widest">Chapter 2</span>
+                            <h2 class="text-3xl md:text-4xl font-bold mt-2">The Big Confusion</h2>
+                            <p class="text-lg text-primary/70 mt-4 leading-relaxed">Are you measuring how smart the AI is in general, or how well it solves your user's specific problem? We must separate Model Evals from Product Evals.</p>
+                        </header>
+
+                        <!-- Interactive Comparison (Open Layout) -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
+                            <div>
+                                <div class="flex items-center gap-4 mb-8">
+                                    <div class="w-12 h-12 rounded-full bg-softgray flex items-center justify-center">
+                                        <i class="ph ph-brain text-2xl text-primary"></i>
+                                    </div>
+                                    <h3 class="text-2xl font-bold">Model Evaluation</h3>
+                                </div>
+                                <ul class="space-y-6">
+                                    <li class="flex items-start gap-4">
+                                        <i class="ph ph-arrow-right text-secondary text-xl mt-0.5"></i>
+                                        <div>
+                                            <strong class="block text-lg mb-1">Goal</strong>
+                                            <span class="text-primary/80">Measure raw intelligence (can it do math? can it code?).</span>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-start gap-4">
+                                        <i class="ph ph-arrow-right text-secondary text-xl mt-0.5"></i>
+                                        <div>
+                                            <strong class="block text-lg mb-1">Who does it?</strong>
+                                            <span class="text-primary/80">Research labs (OpenAI, Google) & Model creators.</span>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-start gap-4">
+                                        <i class="ph ph-arrow-right text-secondary text-xl mt-0.5"></i>
+                                        <div>
+                                            <strong class="block text-lg mb-1">Tools</strong>
+                                            <span class="text-primary/80">Standardized AI tests (e.g., MMLU for academic knowledge, HumanEval for coding).</span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div>
+                                <div class="flex items-center gap-4 mb-8">
+                                    <div class="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center">
+                                        <i class="ph ph-package text-2xl text-secondary"></i>
+                                    </div>
+                                    <h3 class="text-2xl font-bold">Product Evaluation</h3>
+                                </div>
+                                <ul class="space-y-6">
+                                    <li class="flex items-start gap-4">
+                                        <i class="ph ph-arrow-right text-secondary text-xl mt-0.5"></i>
+                                        <div>
+                                            <strong class="block text-lg mb-1">Goal</strong>
+                                            <span class="text-primary/80">Does it behave safely and accurately for <em>our specific users</em>?</span>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-start gap-4">
+                                        <i class="ph ph-arrow-right text-secondary text-xl mt-0.5"></i>
+                                        <div>
+                                            <strong class="block text-lg mb-1">Who does it?</strong>
+                                            <span class="text-primary/80">You! (Product teams, Engineers, QA).</span>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-start gap-4">
+                                        <i class="ph ph-arrow-right text-secondary text-xl mt-0.5"></i>
+                                        <div>
+                                            <strong class="block text-lg mb-1">Tools</strong>
+                                            <span class="text-primary/80">Our own custom datasets, business rules, and risk analysis.</span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Quiz / Check (Open Layout) -->
+                        <div>
+                            <h4 class="font-bold text-xl mb-6">Quick Check: Which type of eval do you need?</h4>
+                            <div class="space-y-4">
+                                <div onclick="checkEvalAnswer(this)" class="p-6 bg-softgray/20 rounded-xl cursor-pointer hover:bg-softgray/40 transition group relative border border-transparent">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-medium text-lg">"I need to pick the smartest base AI model for general coding tasks."</span>
+                                        <i class="ph ph-arrow-right text-softgray group-hover:text-secondary text-2xl"></i>
+                                    </div>
+                                    <div class="hidden mt-4 text-primary/80 answer-text border-t border-softgray pt-4">
+                                        <span class="font-bold text-secondary">Model Eval:</span> Use standard benchmarks to filter base models.
+                                    </div>
+                                </div>
+                                <div onclick="checkEvalAnswer(this)" class="p-6 bg-softgray/20 rounded-xl cursor-pointer hover:bg-softgray/40 transition group relative border border-transparent">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-medium text-lg">"I need to know if our chatbot is rude to angry customers."</span>
+                                        <i class="ph ph-arrow-right text-softgray group-hover:text-secondary text-2xl"></i>
+                                    </div>
+                                    <div class="hidden mt-4 text-primary/80 answer-text border-t border-softgray pt-4">
+                                        <span class="font-bold text-secondary">Product Eval:</span> This requires testing against your specific brand guidelines.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 'framework',
+                title: '3. The Framework',
+                icon: 'ph-tree-structure',
+                content: `
+                    <div class="max-w-4xl mx-auto p-6 md:p-10 fade-in">
+                        <header class="mb-12 border-b border-softgray pb-6">
+                            <span class="text-secondary text-xs font-bold uppercase tracking-widest">Chapter 3</span>
+                            <h2 class="text-3xl md:text-4xl font-bold mt-2">What are you actually evaluating?</h2>
+                            <p class="text-lg text-primary/70 mt-4 leading-relaxed">Evaluation isn't magic. It is strictly about comparing what actually happened to what <em>should</em> have happened.</p>
+                        </header>
+
+                        <!-- Conceptual Flow (Open Layout) -->
+                        <div class="flex flex-col md:flex-row items-start justify-between gap-8 mb-16">
+                            <!-- Input -->
+                            <div class="w-full md:w-1/3 flex flex-col items-center text-center">
+                                <div class="w-16 h-16 bg-softgray rounded-full flex items-center justify-center mb-6 text-2xl font-bold text-primary">1</div>
+                                <h3 class="font-bold text-xl mb-3">Input</h3>
+                                <p class="text-primary/70 leading-relaxed">Not just the prompt! Includes previous chat history, retrieved company documents, and system rules.</p>
+                            </div>
+                            
+                            <div class="hidden md:flex items-center justify-center pt-8">
+                                <i class="ph ph-arrow-right text-4xl text-softgray"></i>
+                            </div>
+
+                            <!-- Expected -->
+                            <div class="w-full md:w-1/3 flex flex-col items-center text-center relative">
+                                <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-secondary text-white text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wide whitespace-nowrap">Hardest Part</div>
+                                <div class="w-16 h-16 bg-secondary text-white rounded-full flex items-center justify-center mb-6 text-2xl font-bold shadow-lg shadow-secondary/20">2</div>
+                                <h3 class="font-bold text-xl mb-3">Expected</h3>
+                                <p class="text-primary/70 leading-relaxed">What does "Good" look like? Defined by business Rubrics (Tone, Accuracy, Safety).</p>
+                            </div>
+
+                            <div class="hidden md:flex items-center justify-center pt-8">
+                                <i class="ph ph-arrow-right text-4xl text-softgray"></i>
+                            </div>
+
+                            <!-- Actual -->
+                            <div class="w-full md:w-1/3 flex flex-col items-center text-center">
+                                <div class="w-16 h-16 bg-softgray rounded-full flex items-center justify-center mb-6 text-2xl font-bold text-primary">3</div>
+                                <h3 class="font-bold text-xl mb-3">Actual</h3>
+                                <p class="text-primary/70 leading-relaxed">The generated response, the tools the AI chose to call, and the decisions made.</p>
+                            </div>
+                        </div>
+
+                        <!-- Rubric Example (Open Layout) -->
+                        <div class="mt-12">
+                            <h3 class="font-bold text-2xl mb-4">Interactive Rubric Example: "Escalation"</h3>
+                            <p class="text-primary/70 mb-8 leading-relaxed">Generic metrics like "Helpfulness" fail because they mean different things to different teams. Specific metrics need specific definitions.</p>
+                            
+                            <div class="grid md:grid-cols-2 gap-8">
+                                <div class="p-6 bg-softgray/20 rounded-2xl border-l-4 border-accent">
+                                    <strong class="text-accent flex items-center gap-2 text-lg mb-4"><i class="ph ph-check-circle text-2xl"></i> Acceptable</strong>
+                                    <ul class="space-y-3">
+                                        <li class="flex items-start gap-3"><i class="ph ph-arrow-right text-secondary mt-1"></i> <span class="text-primary/80">Identifies situations needing human intervention (billing disputes > $100).</span></li>
+                                        <li class="flex items-start gap-3"><i class="ph ph-arrow-right text-secondary mt-1"></i> <span class="text-primary/80">Provides clear context to the human agent on handoff.</span></li>
+                                    </ul>
+                                </div>
+                                <div class="p-6 bg-softgray/20 rounded-2xl border-l-4 border-primary">
+                                    <strong class="text-primary flex items-center gap-2 text-lg mb-4"><i class="ph ph-x-circle text-2xl"></i> Not Acceptable</strong>
+                                    <ul class="space-y-3">
+                                        <li class="flex items-start gap-3"><i class="ph ph-arrow-right text-secondary mt-1"></i> <span class="text-primary/80">Fails to escalate when user is clearly frustrated.</span></li>
+                                        <li class="flex items-start gap-3"><i class="ph ph-arrow-right text-secondary mt-1"></i> <span class="text-primary/80">Escalates routine questions (e.g., "reset password").</span></li>
+                                        <li class="flex items-start gap-3"><i class="ph ph-arrow-right text-secondary mt-1"></i> <span class="text-primary/80">Escalates without summarizing the context.</span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 'datasets',
+                title: '4. Reference Datasets',
+                icon: 'ph-database',
+                content: `
+                    <div class="max-w-4xl mx-auto p-6 md:p-10 fade-in">
+                        <header class="mb-12 border-b border-softgray pb-6">
+                            <span class="text-secondary text-xs font-bold uppercase tracking-widest">Chapter 4</span>
+                            <h2 class="text-3xl md:text-4xl font-bold mt-2">Building Your Golden Set</h2>
+                            <p class="text-lg text-primary/70 mt-4 leading-relaxed">Start with 10-20 "cannot-fail" scenarios. Then, figure out what could go wrong to discover what you actually need to measure.</p>
+                        </header>
+
+                        <!-- Dataset Builder (Open Layout) -->
+                        <div>
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                                <div>
+                                    <h3 class="font-bold text-2xl">From Scenarios to Metrics</h3>
+                                    <p class="text-primary/70 mt-1">How do we know what to measure? It comes from expected failures.</p>
+                                </div>
+                                <div class="text-sm font-bold text-secondary bg-secondary/10 px-4 py-2 rounded-full whitespace-nowrap">Phase: Pre-Deployment</div>
+                            </div>
+
+                            <div class="overflow-x-auto mb-12">
+                                <table class="w-full text-left border-collapse">
+                                    <thead class="bg-softgray text-primary uppercase text-xs tracking-wider">
+                                        <tr>
+                                            <th class="px-6 py-4 rounded-tl-xl font-bold w-1/4">1. Scenario</th>
+                                            <th class="px-6 py-4 font-bold w-1/4">2. Expected Behavior</th>
+                                            <th class="px-6 py-4 font-bold w-1/4">3. What could go wrong?</th>
+                                            <th class="px-6 py-4 rounded-tr-xl font-bold w-1/4">4. Metric to Track</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-softgray">
+                                        <tr class="hover:bg-softgray/10 transition-colors">
+                                            <td class="px-6 py-6 font-bold align-top">User wants a refund without a receipt</td>
+                                            <td class="px-6 py-6 text-primary/80 align-top leading-relaxed">Explain the 30-day policy and ask for an order number.</td>
+                                            <td class="px-6 py-6 text-primary/60 italic align-top leading-relaxed">AI invents a fake policy or promises a refund anyway.</td>
+                                            <td class="px-6 py-6 align-top"><span class="bg-secondary/10 text-secondary font-bold px-3 py-1.5 rounded-lg text-xs">Policy Adherence</span></td>
+                                        </tr>
+                                        <tr class="hover:bg-softgray/10 transition-colors">
+                                            <td class="px-6 py-6 font-bold align-top">Angry user threatening to cancel</td>
+                                            <td class="px-6 py-6 text-primary/80 align-top leading-relaxed">Apologize and immediately escalate to human agent.</td>
+                                            <td class="px-6 py-6 text-primary/60 italic align-top leading-relaxed">AI gives a generic "I'm sorry" and doesn't escalate.</td>
+                                            <td class="px-6 py-6 align-top"><span class="bg-secondary/10 text-secondary font-bold px-3 py-1.5 rounded-lg text-xs">Escalation Accuracy</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="grid md:grid-cols-2 gap-8">
+                                <div class="flex gap-4">
+                                    <div class="w-12 h-12 rounded-full bg-softgray flex items-center justify-center text-primary shrink-0">
+                                        <i class="ph ph-bug text-2xl"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="text-lg block mb-2">One-off Bug</strong>
+                                        <p class="text-sm text-primary/70 leading-relaxed">If the AI forgets a step once, tweak the prompt and move on. Don't build a complex metric for it.</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-4">
+                                    <div class="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center text-secondary shrink-0">
+                                        <i class="ph ph-chart-line-up text-2xl"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="text-lg block mb-2">Recurring Risk = Metric</strong>
+                                        <p class="text-sm text-primary/70 leading-relaxed">If the AI might constantly fail at something critical (like tone or escalation), it becomes a Metric to track continuously.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 'metrics',
+                title: '5. Metrics',
+                icon: 'ph-chart-bar',
+                content: `
+                    <div class="max-w-4xl mx-auto p-6 md:p-10 fade-in">
+                        <header class="mb-12 border-b border-softgray pb-6">
+                            <span class="text-secondary text-xs font-bold uppercase tracking-widest">Chapter 5</span>
+                            <h2 class="text-3xl md:text-4xl font-bold mt-2">Choosing the Right Metrics</h2>
+                            <p class="text-lg text-primary/70 mt-4 leading-relaxed">Not all metrics are created equal. You need to balance the Impact of the measurement against its Reliability and Cost.</p>
+                        </header>
+
+                        <!-- Metric Prioritization Matrix Chart -->
+                        <div class="mb-16">
+                            <h3 class="font-bold text-2xl mb-2">Metric Prioritization Matrix</h3>
+                            <p class="text-primary/70 mb-8">Hover over points to see how different evaluation types rank. Notice we only invest heavily (blue/green accents) in high-impact metrics.</p>
+                            
+                            <div class="chart-container">
+                                <canvas id="metricChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- 3 Approaches (Open Layout) -->
+                        <h3 class="font-bold text-2xl mb-8">The 3 Measurement Approaches</h3>
+                        <div class="grid md:grid-cols-3 gap-8">
+                            <div class="flex flex-col">
+                                <div class="text-secondary font-bold text-xl mb-3">1. Human Eval</div>
+                                <p class="text-primary/80 mb-4 leading-relaxed"><strong>The Gold Standard.</strong> Nuanced but slow and expensive.</p>
+                                <div class="text-sm bg-softgray/30 p-4 rounded-xl text-primary/70 mt-auto">Use for: Calibration, Critical edge cases.</div>
+                            </div>
+                            <div class="flex flex-col">
+                                <div class="text-secondary font-bold text-xl mb-3">2. Code-Based</div>
+                                <p class="text-primary/80 mb-4 leading-relaxed"><strong>Fast & Cheap.</strong> Strict logic and rule checks.</p>
+                                <div class="text-sm bg-softgray/30 p-4 rounded-xl text-primary/70 mt-auto">Use for: Checking for required fields, forbidden words, or response speed.</div>
+                            </div>
+                            <div class="flex flex-col">
+                                <div class="text-secondary font-bold text-xl mb-3">3. LLM Judges</div>
+                                <p class="text-primary/80 mb-4 leading-relaxed"><strong>Scalable Subjectivity.</strong> Uses a secondary AI to grade the primary AI.</p>
+                                <div class="text-sm bg-softgray/30 p-4 rounded-xl text-primary/70 mt-auto">Why? Human review is too slow for 10k chats, but code checks can't measure 'empathy'.</div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 'production',
+                title: '6. Production Monitoring',
+                icon: 'ph-pulse',
+                content: `
+                    <div class="max-w-4xl mx-auto p-6 md:p-10 fade-in">
+                        <header class="mb-12 border-b border-softgray pb-6">
+                            <span class="text-secondary text-xs font-bold uppercase tracking-widest">Chapter 6</span>
+                            <h2 class="text-3xl md:text-4xl font-bold mt-2">The Production Reality</h2>
+                            <p class="text-lg text-primary/70 mt-4 leading-relaxed">Real users are messy. Even a 95% success rate at scale still means hundreds of frustrated users daily. How do we spot them?</p>
+                        </header>
+
+                        <!-- Log Filtering Simulator (Open Layout Integration) -->
+                        <div class="grid md:grid-cols-2 gap-12 mb-16">
+                            <!-- Interactive Control -->
+                            <div class="flex flex-col">
+                                <h3 class="font-bold text-2xl mb-4">Finding the Signal</h3>
+                                <p class="text-primary/70 mb-8 leading-relaxed">You have 10,000 interactions today. You can't read them all. Filter for "Signals" to isolate the problems.</p>
+                                
+                                <div class="space-y-4 flex-grow">
+                                    <label class="flex items-start gap-4 p-4 bg-softgray/20 rounded-xl cursor-pointer hover:bg-softgray/40 transition border border-transparent hover:border-secondary/30">
+                                        <input type="checkbox" id="filter-escalation" class="w-5 h-5 mt-1 text-secondary rounded focus:ring-secondary accent-secondary" onchange="filterLogs()">
+                                        <div>
+                                            <span class="font-bold block text-lg">Explicit Signals</span>
+                                            <p class="text-sm text-primary/60 mt-1">"Talk to a human", Thumbs down ratings</p>
+                                        </div>
+                                    </label>
+                                    <label class="flex items-start gap-4 p-4 bg-softgray/20 rounded-xl cursor-pointer hover:bg-softgray/40 transition border border-transparent hover:border-secondary/30">
+                                        <input type="checkbox" id="filter-behavior" class="w-5 h-5 mt-1 text-secondary rounded focus:ring-secondary accent-secondary" onchange="filterLogs()">
+                                        <div>
+                                            <span class="font-bold block text-lg">Implicit Signals</span>
+                                            <p class="text-sm text-primary/60 mt-1">Rage clicks, copy-pasting, asking same question 3 times</p>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="mt-8">
+                                    <div class="flex justify-between text-sm mb-3">
+                                        <span class="text-primary/70 font-medium">Logs Visible:</span>
+                                        <span class="font-bold text-secondary" id="log-count">10,000</span>
+                                    </div>
+                                    <div class="w-full bg-softgray rounded-full h-2">
+                                        <div id="log-bar" class="bg-primary/30 h-2 rounded-full transition-all duration-500" style="width: 100%"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Log Visualizer -->
+                            <div class="bg-softgray/30 p-6 rounded-2xl font-mono text-sm overflow-hidden flex flex-col h-96 border border-softgray">
+                                <div class="text-primary font-bold border-b border-softgray pb-4 mb-4 flex justify-between font-sans">
+                                    <span class="flex items-center gap-2"><i class="ph ph-chat-circle-dots text-xl text-secondary"></i> Live Chat Stream</span>
+                                    <span class="animate-pulse text-accent font-bold flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-accent"></div> Live</span>
+                                </div>
+                                <div id="log-stream" class="space-y-3 overflow-y-auto flex-1 pr-2">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Guardrails vs Flywheel (Open Layout) -->
+                        <div class="pt-8 border-t border-softgray">
+                            <h3 class="font-bold text-2xl mb-10 text-center">Monitoring Strategy</h3>
+                            <div class="grid md:grid-cols-2 gap-12">
+                                <div class="text-center flex flex-col items-center">
+                                    <div class="w-20 h-20 bg-softgray rounded-full flex items-center justify-center mb-6">
+                                        <i class="ph ph-shield-check text-4xl text-secondary"></i>
+                                    </div>
+                                    <h4 class="font-bold text-xl mb-3">Online (Guardrails)</h4>
+                                    <p class="text-primary/70 leading-relaxed max-w-sm">Real-time circuit breakers. Block PII, hate speech, or dangerous content immediately. Must be fast.</p>
+                                </div>
+                                <div class="text-center flex flex-col items-center">
+                                    <div class="w-20 h-20 bg-secondary/10 rounded-full flex items-center justify-center mb-6">
+                                        <i class="ph ph-arrows-clockwise text-4xl text-secondary"></i>
+                                    </div>
+                                    <h4 class="font-bold text-xl mb-3">Offline (Flywheel)</h4>
+                                    <p class="text-primary/70 leading-relaxed max-w-sm">Batch analysis. Run AI judges overnight on sampled logs to spot trends and fix root causes.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+             {
+                id: 'process',
+                title: '7. Complete Process',
+                icon: 'ph-steps',
+                content: `
+                    <div class="max-w-4xl mx-auto p-6 md:p-10 fade-in">
+                        <header class="mb-12 border-b border-softgray pb-6">
+                            <span class="text-secondary text-xs font-bold uppercase tracking-widest">Chapter 7</span>
+                            <h2 class="text-3xl md:text-4xl font-bold mt-2">The Continuous Lifecycle</h2>
+                            <p class="text-lg text-primary/70 mt-4 leading-relaxed">Putting it all together. Evaluation is not a one-time event, it is an ongoing cycle.</p>
+                        </header>
+
+                        <!-- Bulletproof Flexbox Timeline -->
+                        <div class="ml-2 md:ml-8 mt-8 flex flex-col">
+                            <!-- Step 1 -->
+                            <div class="flex">
+                                <div class="flex flex-col items-center mr-6">
+                                    <div class="w-16 h-16 bg-white border-4 border-softgray rounded-full flex items-center justify-center font-bold text-primary text-xl shrink-0 z-10">1</div>
+                                    <div class="w-1 bg-softgray flex-1 my-2 rounded"></div>
+                                </div>
+                                <div class="pb-12 pt-4">
+                                    <h3 class="font-bold text-2xl mb-2">Test Before Launch (The Baseline)</h3>
+                                    <p class="text-primary/70 leading-relaxed text-lg">Product and QA teams pick 10 to 20 critical "cannot fail" scenarios. Test the AI against these before letting real users touch it.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Step 2 -->
+                            <div class="flex">
+                                <div class="flex flex-col items-center mr-6">
+                                    <div class="w-16 h-16 bg-white border-4 border-softgray rounded-full flex items-center justify-center font-bold text-primary text-xl shrink-0 z-10">2</div>
+                                    <div class="w-1 bg-softgray flex-1 my-2 rounded"></div>
+                                </div>
+                                <div class="pb-12 pt-4">
+                                    <h3 class="font-bold text-2xl mb-2">Automate the Grading</h3>
+                                    <p class="text-primary/70 leading-relaxed text-lg">Set up automatic checks. Use strict rules for objective things (like response speed) and use AI reviewers for subjective things (like empathy).</p>
+                                </div>
+                            </div>
+
+                            <!-- Step 3 -->
+                            <div class="flex">
+                                <div class="flex flex-col items-center mr-6">
+                                    <div class="w-16 h-16 bg-white border-4 border-secondary rounded-full flex items-center justify-center font-bold text-secondary text-xl shrink-0 z-10">3</div>
+                                    <div class="w-1 bg-softgray flex-1 my-2 rounded"></div>
+                                </div>
+                                <div class="pb-12 pt-4">
+                                    <h3 class="font-bold text-2xl mb-2">Add Live Safety Nets</h3>
+                                    <p class="text-primary/70 leading-relaxed text-lg">Launch the AI to users, but keep "guardrails" on. Instantly block harmful content or escalate to a human if the AI gets confused.</p>
+                                </div>
+                            </div>
+
+                            <!-- Step 4 (No trailing line) -->
+                            <div class="flex">
+                                <div class="flex flex-col items-center mr-6">
+                                    <div class="w-16 h-16 bg-white border-4 border-secondary rounded-full flex items-center justify-center font-bold text-secondary text-xl shrink-0 z-10">4</div>
+                                </div>
+                                <div class="pb-4 pt-4">
+                                    <h3 class="font-bold text-2xl mb-2">Learn from User Frustration</h3>
+                                    <p class="text-primary/70 leading-relaxed text-lg">Watch for signs of trouble (like a user repeating the same question). Find out what broke, add it to your Step 1 test scenarios, and repeat the cycle!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 'wrapup',
+                title: '8. Wrap Up & Next Steps',
+                icon: 'ph-flag-checkered',
+                content: `
+                    <div class="max-w-4xl mx-auto p-6 md:p-10 fade-in">
+                        <header class="mb-12 border-b border-softgray pb-6">
+                            <span class="text-secondary text-xs font-bold uppercase tracking-widest">Wrap Up</span>
+                            <h2 class="text-3xl md:text-4xl font-bold mt-2">Summary & Action Plan</h2>
+                            <p class="text-lg text-primary/70 mt-4 leading-relaxed">AI changes how we build, but our end goal remains the same: delivering reliable, valuable products to our users.</p>
+                        </header>
+
+                        <!-- 3 Big Takeaways (Open Layout) -->
+                        <div class="grid md:grid-cols-3 gap-10 mb-16">
+                            <div class="flex flex-col items-center text-center">
+                                <div class="w-20 h-20 rounded-full bg-softgray flex items-center justify-center mb-6">
+                                    <i class="ph ph-users text-4xl text-secondary"></i>
+                                </div>
+                                <h4 class="font-bold text-xl mb-3">It's a Team Sport</h4>
+                                <p class="text-primary/70 leading-relaxed">Building reliable AI requires diverse perspectives. We must combine our technical knowledge, business goals, and quality standards.</p>
+                            </div>
+                            <div class="flex flex-col items-center text-center">
+                                <div class="w-20 h-20 rounded-full bg-softgray flex items-center justify-center mb-6">
+                                    <i class="ph ph-target text-4xl text-secondary"></i>
+                                </div>
+                                <h4 class="font-bold text-xl mb-3">Start Small</h4>
+                                <p class="text-primary/70 leading-relaxed">Don't wait for a perfect testing suite. Start with 10-20 "cannot fail" scenarios right now to establish a baseline.</p>
+                            </div>
+                            <div class="flex flex-col items-center text-center">
+                                <div class="w-20 h-20 rounded-full bg-softgray flex items-center justify-center mb-6">
+                                    <i class="ph ph-arrows-clockwise text-4xl text-secondary"></i>
+                                </div>
+                                <h4 class="font-bold text-xl mb-3">Continuous Loop</h4>
+                                <p class="text-primary/70 leading-relaxed">AI degrades and users change. Evaluation is an ongoing lifecycle of discovery, not just a pre-launch testing gate.</p>
+                            </div>
+                        </div>
+
+                        <!-- Action Plan (Open Layout) -->
+                        <div class="pt-8 border-t border-softgray relative">
+                            <i class="ph ph-rocket-launch text-9xl text-softgray absolute top-8 right-0 opacity-30 pointer-events-none"></i>
+                            
+                            <h3 class="text-3xl font-bold mb-10 flex items-center gap-3">
+                                <i class="ph ph-check-square-offset text-secondary"></i> How Our Team Can Start Today
+                            </h3>
+                            
+                            <div class="space-y-8 relative z-10 max-w-2xl">
+                                <div class="flex items-start gap-6">
+                                    <div class="w-14 h-14 rounded-xl bg-secondary/10 flex items-center justify-center font-bold text-secondary text-lg shrink-0">PM</div>
+                                    <div class="pt-1">
+                                        <strong class="block text-xl mb-1">Project Manager</strong>
+                                        <p class="text-primary/70 leading-relaxed">Draft the top 10 most critical user scenarios the AI <em>must</em> get right.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-6">
+                                    <div class="w-14 h-14 rounded-xl bg-secondary/10 flex items-center justify-center font-bold text-secondary text-lg shrink-0">QA</div>
+                                    <div class="pt-1">
+                                        <strong class="block text-xl mb-1">Quality Assurance</strong>
+                                        <p class="text-primary/70 leading-relaxed">Review those 10 scenarios and find the edge cases (What if the user gets angry? What if data is missing?).</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-6">
+                                    <div class="w-14 h-14 rounded-xl bg-secondary/10 flex items-center justify-center font-bold text-secondary text-lg shrink-0">DEV</div>
+                                    <div class="pt-1">
+                                        <strong class="block text-xl mb-1">Engineering</strong>
+                                        <p class="text-primary/70 leading-relaxed">Set up logging so we can easily review outputs, and automate running these 10 examples against the AI.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-6">
+                                    <div class="w-14 h-14 rounded-xl bg-secondary/10 flex items-center justify-center font-bold text-secondary text-lg shrink-0">UX/UI</div>
+                                    <div class="pt-1">
+                                        <strong class="block text-xl mb-1">Designers</strong>
+                                        <p class="text-primary/70 leading-relaxed">Review the top failure scenarios to design better fallbacks, safety warnings, and user feedback mechanisms.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            }
+        ];
+
+        // --- State Management ---
+        let currentChapterIndex = 0;
+
+        // --- UI Rendering ---
+        function renderNav() {
+            const navContainer = document.getElementById('nav-container');
+            navContainer.innerHTML = courseData.map((chapter, index) => `
+                <button 
+                    onclick="loadChapter(${index})"
+                    class="w-full text-left px-6 py-4 flex items-center gap-4 hover:bg-softgray/30 transition border-l-4 border-transparent ${index === currentChapterIndex ? 'active-nav' : 'text-primary/70'}"
+                >
+                    <i class="ph ${chapter.icon} text-xl ${index === currentChapterIndex ? 'text-secondary' : ''}"></i>
+                    <span class="text-sm truncate">${chapter.title}</span>
+                </button>
+            `).join('');
+            
+            // Update Progress
+            const progress = ((currentChapterIndex + 1) / courseData.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+        }
+
+        function loadChapter(index) {
+            currentChapterIndex = index;
+            const mainContent = document.getElementById('main-content');
+            mainContent.innerHTML = courseData[index].content;
+            
+            // Scroll to top
+            mainContent.scrollTop = 0;
+
+            renderNav();
+            
+            // Initialize specific chapter interactions
+            if (courseData[index].id === 'intro') resetSimulations();
+            if (courseData[index].id === 'metrics') initMetricChart();
+            if (courseData[index].id === 'production') initLogStream();
+
+            // Mobile menu handling
+            if(window.innerWidth < 768 && typeof toggleSidebar === 'function') {
+                toggleSidebar(false);
+            }
+        }
+
+        // --- Interaction Logic ---
+
+        // Module 1: Deterministic vs AI
+        function runTraditional() {
+            const output = document.getElementById('trad-output');
+            output.innerText = '> System Output: Displaying standard refund form.';
+            output.classList.add('text-secondary');
+            setTimeout(() => output.classList.remove('text-secondary'), 200);
+        }
+
+        function runAI() {
+            const output = document.getElementById('ai-output');
+            const responses = [
+                '> AI: "I understand you are frustrated. I can help process your refund right now."',
+                '> AI: "Oh no! Im sorry you hated the product. Here is a link to our refund portal."',
+                '> AI: "As an AI, I cannot issue refunds, but I have escalated this to an agent."',
+                '> AI: "To get your money back, please provide your order number first."'
+            ];
+            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+            output.innerText = randomResponse;
+            output.classList.add('text-secondary');
+            setTimeout(() => output.classList.remove('text-secondary'), 200);
+        }
+
+        function resetSimulations() {
+            // Reset any temporary state if needed
+        }
+
+        // Module 2: Quiz
+        function checkEvalAnswer(element) {
+            const answerText = element.querySelector('.answer-text');
+            answerText.classList.remove('hidden');
+            answerText.classList.add('fade-in');
+        }
+
+        // Module 5: Chart.js (Brand compliant colors)
+        let metricChartInstance = null;
+        function initMetricChart() {
+            const ctx = document.getElementById('metricChart');
+            if(!ctx) return;
+
+            // Global Chart defaults
+            Chart.defaults.color = '#0d2c54';
+            Chart.defaults.font.family = 'Inter, sans-serif';
+
+            if (metricChartInstance) {
+                metricChartInstance.destroy();
+            }
+
+            metricChartInstance = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Metrics',
+                        data: [
+                            { x: 1, y: 9, label: 'Safety Filter', type: 'Must Have' },
+                            { x: 2, y: 8, label: 'Format Check (Email/JSON)', type: 'Must Have' },
+                            { x: 2, y: 9, label: 'Response Speed', type: 'Must Have' },
+                            
+                            { x: 8, y: 9, label: 'Expert Human Review', type: 'Strategic' },
+                            { x: 7, y: 8, label: 'AI Grading AI (LLM Judge)', type: 'Strategic' },
+                            
+                            { x: 2, y: 2, label: 'Basic Sentiment Check', type: 'Nice to Have' },
+                            { x: 3, y: 3, label: 'Word Count', type: 'Nice to Have' },
+                            
+                            { x: 8, y: 2, label: 'Complex Unused Score', type: 'Avoid' }
+                        ],
+                        backgroundColor: (ctx) => {
+                            const val = ctx.raw;
+                            if (!val) return '#DCE3ED';
+                            // Max 10% usage of accent colors -> highlight only 2 key strategic/must-have metrics
+                            if (val.label === 'Safety Filter') return '#11d399'; // Green accent
+                            if (val.label === 'AI Grading AI (LLM Judge)') return '#006fff'; // Blue accent
+                            return '#DCE3ED'; // Everything else is soft gray
+                        },
+                        pointRadius: 8,
+                        pointHoverRadius: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            backgroundColor: '#0d2c54',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.raw.label} (${context.raw.type})`;
+                                }
+                            }
+                        },
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Cost (Compute/$$$)', font: { weight: 'bold' } },
+                            min: 0, max: 10,
+                            grid: { color: '#DCE3ED' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Business Impact', font: { weight: 'bold' } },
+                            min: 0, max: 10,
+                            grid: { color: '#DCE3ED' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Module 6: Log Simulation
+        const allLogs = [
+            { type: 'normal', msg: 'User requested password reset', id: 'req_001' },
+            { type: 'normal', msg: 'Product query: "blue shoes"', id: 'req_002' },
+            { type: 'behavior', msg: 'User retried prompt 3 times', id: 'req_003' },
+            { type: 'escalation', msg: 'User: "Let me talk to a human!"', id: 'req_004' },
+            { type: 'normal', msg: 'Shipping status check', id: 'req_005' },
+            { type: 'behavior', msg: 'Rage click detected on "Submit"', id: 'req_006' },
+            { type: 'normal', msg: 'User updated profile', id: 'req_007' },
+            { type: 'escalation', msg: 'User: "This is useless"', id: 'req_008' },
+            { type: 'normal', msg: 'Checkout flow started', id: 'req_009' }
+        ];
+
+        function initLogStream() {
+            const container = document.getElementById('log-stream');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            // Simple render loop simulation
+            filterLogs();
+        }
+
+        function filterLogs() {
+            const container = document.getElementById('log-stream');
+            if(!container) return;
+            
+            const showEscalation = document.getElementById('filter-escalation')?.checked;
+            const showBehavior = document.getElementById('filter-behavior')?.checked;
+            
+            container.innerHTML = '';
+
+            let visibleCount = 0;
+
+            allLogs.forEach(log => {
+                let isVisible = false;
+                
+                if (log.type === 'normal' && !showEscalation && !showBehavior) isVisible = true;
+                if (log.type === 'escalation' && showEscalation) isVisible = true;
+                if (log.type === 'behavior' && showBehavior) isVisible = true;
+
+                // If filters are on, hide normal
+                if ((showEscalation || showBehavior) && log.type === 'normal') isVisible = false;
+
+                if (isVisible) {
+                    const div = document.createElement('div');
+                    // Styling mapping to brand colors
+                    div.className = `p-3 rounded font-mono text-xs mb-2 ${
+                        log.type === 'escalation' ? 'bg-secondary/10 text-primary border-l-4 border-secondary' :
+                        log.type === 'behavior' ? 'bg-accent/10 text-primary border-l-4 border-accent' :
+                        'text-primary/60 border-l-4 border-transparent'
+                    }`;
+                    div.innerText = `[${new Date().toLocaleTimeString()}] [${log.id}] ${log.msg}`;
+                    container.appendChild(div);
+                }
+            });
+
+            // Update UI Bars based on hypothetical math
+            const logBar = document.getElementById('log-bar');
+            const logCountText = document.getElementById('log-count');
+            
+            if (showEscalation && showBehavior) {
+                visibleCount = 350; // Hypothetical small number
+                logBar.style.width = '3.5%';
+                logBar.className = 'h-2 rounded-full transition-all duration-500 bg-secondary';
+                logCountText.innerText = visibleCount + " (Manageable)";
+            } else if (showEscalation || showBehavior) {
+                visibleCount = 150;
+                logBar.style.width = '1.5%';
+                logBar.className = 'h-2 rounded-full transition-all duration-500 bg-secondary';
+                logCountText.innerText = visibleCount + " (Manageable)";
+            } else {
+                visibleCount = 10000;
+                logBar.style.width = '100%';
+                logBar.className = 'h-2 rounded-full transition-all duration-500 bg-softgray';
+                logCountText.innerText = "10,000 (Impossible)";
+            }
+        }
+
+        // --- Initialization & Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Mobile Menu Toggle
+            const btn = document.getElementById('mobile-menu-btn');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+
+            toggleSidebar = function(show) {
+                if (show) {
+                    sidebar.classList.remove('-translate-x-full');
+                    overlay.classList.remove('hidden');
+                } else {
+                    sidebar.classList.add('-translate-x-full');
+                    overlay.classList.add('hidden');
+                }
+            }
+
+            btn.addEventListener('click', () => toggleSidebar(true));
+            overlay.addEventListener('click', () => toggleSidebar(false));
+
+            loadChapter(0);
+        });
+
+    </script>
+</body>
+</html>
