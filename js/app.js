@@ -1,3 +1,5 @@
+import { courseData } from './data.js';
+
 // --- Globals ---
 let toggleSidebar;
 let currentChapterIndex = 0;
@@ -266,3 +268,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const initialIndex = courseData.findIndex(c => c.id === hash);
     loadChapter(initialIndex !== -1 ? initialIndex : 0);
 });
+
+// Expose to window for inline HTML event handlers
+window.loadChapter = loadChapter;
+window.runTraditional = runTraditional;
+window.runAI = runAI;
+window.checkEvalAnswer = checkEvalAnswer;
+window.filterLogs = filterLogs;
