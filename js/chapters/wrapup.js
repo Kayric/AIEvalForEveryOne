@@ -47,7 +47,7 @@ export const wrapup = {
                                 <div class="flex items-start gap-6">
                                     <div class="w-14 h-14 rounded-xl bg-secondary/10 flex items-center justify-center font-bold text-secondary text-lg shrink-0">PM</div>
                                     <div class="pt-1">
-                                        <strong class="block text-xl mb-1">Product Managers & POs</strong>
+                                        <strong class="block text-xl mb-1">Project Manager</strong>
                                         <p class="text-primary/70 leading-relaxed">Draft the top 10 most critical user scenarios the AI <em>must</em> get right.</p>
                                     </div>
                                 </div>
@@ -66,9 +66,9 @@ export const wrapup = {
                                     </div>
                                 </div>
                                 <div class="flex items-start gap-6">
-                                    <div class="w-14 h-14 rounded-xl bg-secondary/10 flex items-center justify-center font-bold text-secondary text-lg shrink-0">UX</div>
+                                    <div class="w-14 h-14 rounded-xl bg-secondary/10 flex items-center justify-center font-bold text-secondary text-lg shrink-0">UX/UI</div>
                                     <div class="pt-1">
-                                        <strong class="block text-xl mb-1">UX / UI Designers</strong>
+                                        <strong class="block text-xl mb-1">Designers</strong>
                                         <p class="text-primary/70 leading-relaxed">Review the top failure scenarios to design better fallbacks, safety warnings, and user feedback mechanisms.</p>
                                     </div>
                                 </div>
